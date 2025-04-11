@@ -7,7 +7,7 @@ use tracing_subscriber::{
 
 pub fn log() {
     // 加载环境变量
-    // dotenvy::dotenv().ok();
+    dotenvy::dotenv().ok();
     // 初始化日志
     tracing_subscriber::registry()
         .with(

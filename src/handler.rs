@@ -1,21 +1,20 @@
 use crate::dao::query_by_file_path;
 use crate::model::{CodeRequest, FileInfo, R};
-use crate::thumbnail::{self, OUTPUT_DIR, gen_file_dir_path};
+use crate::thumbnail::{self, gen_file_dir_path, OUTPUT_DIR};
 use crate::{dao, es};
 use axum::extract::{Query, State};
-use axum::response::{IntoResponse, Sse, sse};
-use base64::Engine;
+use axum::response::{sse, IntoResponse, Sse};
 use base64::engine::general_purpose;
+use base64::Engine;
+use futures::future::join_all;
 use futures::Stream as FuturesStream;
 use futures::StreamExt as FuturesStreamExt;
-use futures::future::join_all;
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use sqlx::SqlitePool;
-use std::collections::HashMap;
 use std::pin::Pin;
 use std::time::Duration;
-use tokio_stream::StreamExt as TokioStreamExt;
 use tokio_stream::wrappers::ReceiverStream;
+use tokio_stream::StreamExt as TokioStreamExt;
 use tracing::info;
 
 /// 获取视频缩略图
@@ -95,16 +94,16 @@ pub async fn sse_handler(
     // 输出目录
     let out_file_dir_path = gen_file_dir_path(out_dir, &FileInfo::obtain_filename(&file.filepath));
     // 输出gif路径
-    let gif_path = thumbnail::gen_out_gif_path(&out_file_dir_path);
+    let _gif_path = thumbnail::gen_out_gif_path(&out_file_dir_path);
     // 输出png路径
-    let png_path = thumbnail::gen_out_png_path(&out_file_dir_path);
+    let _png_path = thumbnail::gen_out_png_path(&out_file_dir_path);
     let file_info = query_by_file_path(&pool, &file.filepath).await.unwrap();
     let stream = match file_info {
         None => {
             let out_file_dir_path_clone = out_file_dir_path.clone();
             tokio::spawn(async move {
                 // 生成缩略图
-                thumbnail::generate_keyframes(&file.filepath, &out_file_dir_path).await;
+                let _ = thumbnail::generate_keyframes(&file.filepath, &out_file_dir_path).await;
             });
             Box::pin(gen_watch_dir_stream(out_file_dir_path_clone))
                 as Pin<
