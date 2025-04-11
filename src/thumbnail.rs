@@ -110,7 +110,7 @@ pub async fn generate_gif_by_keyframes(output_dir_path: &str) -> Result<()> {
     cmd.arg("-i")
         .arg(format!("{}/png/%04d.png", output_dir_path))
         .arg("-vf")
-        .arg("scale=320:-1:flags=lanczos,fps=10")
+        .arg("scale=320:-1:flags=lanczos,fps=3")
         .arg("-c:v")
         .arg("gif")
         .arg("-loop")

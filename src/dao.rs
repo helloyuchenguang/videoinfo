@@ -76,7 +76,7 @@ pub async fn query_and_update_by_file_path(
         std::fs::metadata(file_path)?.len() as u32,
     );
     sqlx::query(
-        "INSERT INTO file_info (hash_key, total_frame, file_path,filename, file_size) VALUES (?, ?, ?, ?)",
+        "INSERT INTO file_info (hash_key, total_frame, file_path, file_size) VALUES (?, ?, ?, ?)",
     )
     .bind(&new_file_info.hash_key)
     .bind(new_file_info.total_frame)

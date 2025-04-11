@@ -1,10 +1,10 @@
 use crate::model::{CodeRequest, FileInfo, R};
-use crate::thumbnail::{gen_file_dir_path, gen_gif_path, OUTPUT_DIR};
+use crate::thumbnail::{self, OUTPUT_DIR, gen_file_dir_path};
 use crate::{dao, es};
 use axum::extract::{Query, State};
 use axum::response::IntoResponse;
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
 use futures::future::join_all;
 use sqlx::SqlitePool;
 use tracing::info;
@@ -25,7 +25,7 @@ pub async fn get_thumbnails(
             .unwrap();
         let out_dir = OUTPUT_DIR.as_str();
         let file_dir_path = gen_file_dir_path(out_dir, &FileInfo::obtain_filename(&info.file_path));
-        let gif_path = gen_gif_path(&file_dir_path);
+        let gif_path = thumbnail::gen_gif_path(&file_dir_path);
         let encodeds = get_files_to_base64_by_dir(&gif_path);
         info!("文件耗时: {:?}", start.elapsed());
         encodeds
