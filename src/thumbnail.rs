@@ -52,7 +52,7 @@ pub fn gen_file_dir_path(output_path: &str, filename: &String) -> String {
 /// 生成视频关键帧
 pub async fn generate_keyframes(file_path: &str, out_dir_path: &str) -> Result<()> {
     // ffmpeg -hwaccel cuda -skip_frame nokey -i ${file_path}  -fps_mode vfr -vf select='not(mod(n\,10))',blackframe=0,metadata=select:key=lavfi.blackframe.pblack:value=80:function=less,scale=320:-1:force_original_aspect_ratio=decrease -q:v 1 -y {}/%04d.png
-    let png_path = gen_png_path(out_dir_path);
+    let png_path = gen_out_png_path(out_dir_path);
     // 不存在则创建
     if !std::path::Path::new(&png_path).exists() {
         std::fs::create_dir_all(&png_path)?;
@@ -87,12 +87,12 @@ pub async fn generate_keyframes(file_path: &str, out_dir_path: &str) -> Result<(
     Ok(())
 }
 
-pub fn gen_png_path(out_dir_path: &str) -> String {
+pub fn gen_out_png_path(out_dir_path: &str) -> String {
     let png_path = format!("{}/png", out_dir_path);
     png_path
 }
 
-pub fn gen_gif_path(out_dir_path: &str) -> String {
+pub fn gen_out_gif_path(out_dir_path: &str) -> String {
     let gif_path = format!("{}/gif", out_dir_path);
     gif_path
 }
@@ -100,7 +100,7 @@ pub fn gen_gif_path(out_dir_path: &str) -> String {
 /// 生成gif
 pub async fn generate_gif_by_keyframes(output_dir_path: &str) -> Result<()> {
     // ffmpeg -i ${png_path}/%04d.png -vf scale=320:-1:flags=lanczos,fps=10 -c:v gif -loop 0 -y ${out_path}/gif/${filename}.gif
-    let gif_path = gen_gif_path(output_dir_path);
+    let gif_path = gen_out_gif_path(output_dir_path);
     // 不存在则创建
     if !std::path::Path::new(&gif_path).exists() {
         info!("创建gif目录: {}", gif_path);

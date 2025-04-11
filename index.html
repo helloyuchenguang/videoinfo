@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Client Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .image {
+            max-width: 100%;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>实时图片更新</h1>
+    <div id="status">连接状态：未连接</div>
+    <div id="messages"></div>
+</div>
+
+<script>
+    const messagesContainer = document.getElementById('messages')
+    const statusElement = document.getElementById('status')
+
+    // SSE服务地址（根据你的实际路径修改）
+    const sseUrl = new URL('http://localhost:3000/sse')
+    sseUrl.searchParams.set('path', 'D:/video_data/SIVR-170-CD1/png')
+
+    // 创建SSE连接
+    const eventSource = new EventSource(sseUrl)
+
+    // 连接成功回调
+    eventSource.onopen = () => {
+        statusElement.textContent = '连接状态：已连接'
+        console.log('SSE连接已建立')
+    }
+
+    // 接收消息回调
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        console.log(data)
+
+        // 创建消息元素
+        const div = document.createElement('div')
+        div.className = 'message'
+        div.innerHTML = `
+                <div>时间：${new Date().toLocaleTimeString()}</div>
+                <div>内容：${data.msg || '无文本消息'}</div>
+            `
+
+        // 如果有图片数据
+        if (data.data) {
+            const img = document.createElement('img')
+            img.className = 'image'
+            img.src = data.data
+            div.appendChild(img)
+        }
+
+        messagesContainer.prepend(div)
+    }
+
+    // 错误处理
+    eventSource.onerror = (error) => {
+        statusElement.textContent = '连接状态：已断开'
+        console.error('SSE连接错误:', error)
+    }
+</script>
+</body>
+</html>
