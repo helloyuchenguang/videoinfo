@@ -1,5 +1,6 @@
 use crate::{fhash, model, thumbnail};
 
+use crate::model::FileInfo;
 use anyhow::Result;
 use dotenvy::var;
 use sqlx::sqlite::SqlitePoolOptions;
@@ -66,6 +67,10 @@ pub async fn query_and_update_by_file_path(
     if let Some(fi) = file_info {
         return Ok(fi);
     }
+    create_file_info(pool, file_path).await
+}
+
+pub async fn create_file_info(pool: &SqlitePool, file_path: &str) -> Result<FileInfo> {
     // 如果没有记录，则插入新记录
     let new_file_info = model::FileInfo::new(
         0,

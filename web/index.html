@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE 图片画廊</title>
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            padding: 2rem;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            display: flex;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(81, 203, 238, 0.5);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #00b4d8, #0077b6);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 216, 0.4);
+        }
+
+        .swiper-container {
+            height: 70vh;
+            margin-top: 2rem;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+
+        .swiper-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .swiper-slide img.loaded {
+            opacity: 1;
+        }
+
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="search-container">
+    <input type="text" class="search-input" placeholder="请输入代码..." id="codeInput">
+    <button class="search-btn" onclick="search()">搜索</button>
+</div>
+
+<div class="swiper-container">
+    <div class="swiper-wrapper"></div>
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+</div>
+
+<script src="swiper-bundle.min.js"></script>
+<script>
+    let swiper = null;
+    let eventSource = null;
+
+    function initSwiper() {
+        if (swiper) swiper.destroy();
+
+        swiper = new Swiper('.swiper-container', {
+            // 设置循环
+            loop: true,
+            // 设置自动播放
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            // 添加导航按钮
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            // 自动轮播
+            autoplay: {
+                // 时间间隔ms
+                delay: 2000,
+                // 是否在用户操作后继续自动播放
+                disableOnInteraction: false,
+            },
+            effect: 'slide',
+            speed: 800,
+        });
+    }
+
+    function search() {
+        const code = document.getElementById('codeInput').value;
+        if (!code) return;
+
+        // 关闭之前的SSE连接
+        if (eventSource) eventSource.close();
+
+        // 清空画廊
+        document.querySelector('.swiper-wrapper').innerHTML = '';
+        initSwiper();
+
+        // 创建新的SSE连接
+        eventSource = new EventSource(`http://localhost:3000/sse?code=${encodeURIComponent(code)}`);
+
+        eventSource.onmessage = (event) => {
+            const data = event.data;
+            if (data) {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                const img = new Image();
+                img.src = data;
+                slide.appendChild(img);
+                swiper.appendSlide(slide);
+                swiper.update();
+            }
+        };
+
+        eventSource.onerror = (err) => {
+            console.error('SSE error:', err);
+            eventSource.close();
+        };
+    }
+
+    // 初始化空画廊
+    initSwiper();
+</script>
+</body>
+</html>

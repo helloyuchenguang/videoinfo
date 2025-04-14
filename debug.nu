@@ -1,3 +1,3 @@
-rm -rf data.sqlit3;
-rm -rf D:\video_data\JVRPORN-100201\png\*;
+rm -rf data.sqlite3;
+rm -rf D:\video_data\*;
 cargo r
